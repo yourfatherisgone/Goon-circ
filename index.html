@@ -3,23 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Hub</title>
+    <title>Bypass Viewer</title>
     <style>
         :root {
             --bg-color: #0f172a;
             --surface-color: #1e293b;
             --border-color: #334155;
             --accent-color: #3b82f6;
-            --accent-hover: #2563eb;
             --text-main: #f8fafc;
-            --text-muted: #94a3b8;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: system-ui, -apple-system, sans-serif;
         }
 
         body, html {
@@ -27,12 +25,11 @@
             width: 100vw;
             background-color: var(--bg-color);
             color: var(--text-main);
-            overflow: hidden;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
-        /* Top Navigation / Address Bar */
         header {
             height: 60px;
             background-color: var(--surface-color);
@@ -41,21 +38,6 @@
             align-items: center;
             padding: 0 1rem;
             gap: 1rem;
-            flex-shrink: 0;
-        }
-
-        .brand {
-            font-weight: 700;
-            font-size: 1.1rem;
-            letter-spacing: -0.5px;
-            color: var(--text-main);
-            display: flex;
-            align-items: center;
-            gap: 0.5px;
-        }
-
-        .brand span {
-            color: var(--accent-color);
         }
 
         .url-form {
@@ -74,11 +56,6 @@
             color: var(--text-main);
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
-        }
-
-        .url-input:focus {
-            border-color: var(--accent-color);
         }
 
         .go-btn {
@@ -89,128 +66,72 @@
             padding: 0 1.25rem;
             font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s;
         }
 
-        .go-btn:hover {
-            background-color: var(--accent-hover);
-        }
-
-        /* Main Workspace layout */
-        .workspace {
+        #content-container {
             flex: 1;
-            display: flex;
-            position: relative;
-            overflow: hidden;
-        }
-
-        /* Quick Launch Sidebar */
-        sidebar {
-            width: 260px;
-            background-color: var(--surface-color);
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            padding: 1rem;
-            gap: 0.75rem;
-            flex-shrink: 0;
-        }
-
-        .sidebar-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-
-        .shortcut-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 0.65rem 1rem;
-            text-align: left;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .shortcut-btn:hover {
-            background-color: var(--border-color);
-            border-color: var(--text-muted);
-        }
-
-        /* Content Area / Iframe Container */
-        .viewport-container {
-            flex: 1;
-            background-color: #000;
-            position: relative;
-        }
-
-        iframe {
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 60px);
+            background: #ffffff;
             border: none;
-            display: block;
         }
-
-        /* Responsive adjustments for mobile/smaller screens */
-        @media (max-width: 768px) {
-            sidebar {
-                display: none;
-            }
+        
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: #64748b;
+            font-size: 1.1rem;
+            background: var(--bg-color);
         }
     </style>
 </head>
 <body>
 
-    <!-- Top Navigation Bar with Custom URL loader -->
     <header>
-        <div class="brand">Hub<span>OS</span></div>
-        <form class="url-form" id="urlForm" onsubmit="loadSite(event)">
+        <form class="url-form" id="urlForm" onsubmit="fetchSite(event)">
             <input type="text" id="urlInput" class="url-input" placeholder="Enter target URL (e.g., https://example.com)" autocomplete="off">
             <button type="submit" class="go-btn">Load</button>
         </form>
     </header>
 
-    <!-- Main Content Grid -->
-    <div class="workspace">
-        <!-- Quick App/Site Launcher Sidebar -->
-        <sidebar>
-            <div class="sidebar-title">Quick Shortcuts</div>
-            <!-- Change these data-url parameters to any sites you want quick access to -->
-            <button class="shortcut-btn" onclick="setAndLoad('https://example.com')">Example Site <span>↗</span></button>
-            <button class="shortcut-btn" onclick="setAndLoad('https://wikipedia.org')">Wikipedia <span>↗</span></button>
-            <button class="shortcut-btn" onclick="setAndLoad('https://retrobowl.me')">Retro Bowl Hub <span>↗</span></button>
-        </sidebar>
-
-        <!-- Display Screen -->
-        <div class="viewport-container">
-            <iframe id="webFrame" src="https://example.com" title="Viewer Viewport"></iframe>
-        </div>
+    <div id="content-container">
+        <div class="loading">Enter a URL above and click Load.</div>
     </div>
 
     <script>
-        function loadSite(event) {
+        async function fetchSite(event) {
             event.preventDefault();
             let url = document.getElementById('urlInput').value.trim();
-            if(!url) return;
-            
-            // Auto-prepend https:// if missing
+            if (!url) return;
+
             if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://' + url;
             }
-            
-            document.getElementById('webFrame').src = url;
-        }
 
-        function setAndLoad(url) {
-            document.getElementById('urlInput').value = url;
-            document.getElementById('webFrame').src = url;
+            const container = document.getElementById('content-container');
+            container.innerHTML = '<div class="loading">Fetching and bypassing restrictions...</div>';
+
+            try {
+                // Using an open CORS-anywhere style proxy or allorigins endpoint to fetch raw content
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxyUrl);
+                const data = await response.json();
+
+                if (data.contents) {
+                    // Inject the fetched HTML into an sandboxed object/iframe container or document replacement
+                    container.innerHTML = `<iframe id="renderedFrame" style="width:100%; height:100%; border:none;"></iframe>`;
+                    const iframeDoc = document.getElementById('renderedFrame').contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(data.contents);
+                    iframeDoc.close();
+                } else {
+                    container.innerHTML = `<div class="loading" style="color: #ef4444;">Failed to load content from the target URL.</div>`;
+                }
+            } catch (err) {
+                container.innerHTML = `<div class="loading" style="color: #ef4444;">Error fetching site: ${err.message}</div>`;
+            }
         }
     </script>
 </body>
